@@ -38,26 +38,31 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validateData = $request->validate([
-            'username' => 'required',
-            'password' => 'required|min:8|max:32',
-        ]);
-
-        // $credential = ;
-        if (!$token = auth()->guard('api')->attempt($validateData)) {
+        if (Auth::check()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau Password Anda salah'
-            ], 401);
-            
-           
+                'message' => 'Anda sudah login.',
+            ], 400);
         } else {
-            // $request->session()->regenerate();
-            return response()->json([
-                'success' => true,
-                'token'   => $token,
-                'admin'    => auth()->guard('api')->user(),    
-            ], 200);
+            $validateData = $request->validate([
+                'username' => 'required',
+                'password' => 'required|min:8|max:32',
+            ]);
+
+            // $credential = ;
+            if (!$token = auth()->guard('api')->attempt($validateData)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email atau Password Anda salah'
+                ], 401);
+            } else {
+                // $request->session()->regenerate();
+                return response()->json([
+                    'success' => true,
+                    'token'   => $token,
+                    'admin'    => auth()->guard('api')->user(),
+                ], 200);
+            }
         }
     }
 
@@ -65,11 +70,16 @@ class AuthController extends Controller
     {
         $removeToken = JWTAuth::invalidate(JWTAuth::getToken());
 
-        if($removeToken) {
+        if ($removeToken) {
             //return response JSON
             return response()->json([
                 'success' => true,
-                'message' => 'Logout Berhasil!',  
+                'message' => 'Logout Berhasil!',
+            ]);
+        }else{
+            return response()->json([
+                'success' => false,
+
             ]);
         }
     }
